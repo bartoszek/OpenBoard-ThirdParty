@@ -77,10 +77,10 @@ environment:
     # visual studio 2017
     # %QTDIR%\bin\qtenv2.bat not found
     # qt 5.12
-    - QTDIR: C:\Qt\5.12\msvc2015
+    - QTDIR: C:\Qt\5.12\msvc2017
       cname: Win32-VS2017
       VSVER: 15.0
-    - QTDIR: C:\Qt\5.12\msvc2015_64
+    - QTDIR: C:\Qt\5.12\msvc2017_64
       cname: Win64-VS2017
       VSVER: 15.0
 
@@ -102,9 +102,10 @@ matrix:
   allow_failures:
     - cname: Win64-VS2015
     - cname: Win64-VS2017
+    - cname: Win32-VS2017
 
 install:
-  - ls %QTDIR%\bin
+  - ls "%ProgramFiles(x86)%"
   - '%QTDIR%\bin\qtenv2.bat'
   - if %QTDIR:_64=%==%QTDIR% ( set ARCH=x86 ) else set ARCH=x64
   - if %cname%==mingw set make=mingw32-make.exe
