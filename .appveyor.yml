@@ -74,6 +74,8 @@ build_script:
   - cd %APPVEYOR_BUILD_FOLDER%/freetype
   - '%make%'
   - cd %APPVEYOR_BUILD_FOLDER%/xpdf
+  - cp xpdf-3.04/aconf-win32.h xpdf-3.04/aconf.h
+  - sed '/endif/i#undef UNICODE' -i xpdf-3.04/aconf.h
   - '%make%'
 
 after_build:
