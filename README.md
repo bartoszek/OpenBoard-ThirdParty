@@ -1,3 +1,4 @@
+[![Build status](https://ci.appveyor.com/api/projects/status/r40jjjseyqb0y15h?svg=true)](https://ci.appveyor.com/project/bartoszek/openboard-thirdparty)
 OpenBoard third party libraries
 ================================
 
