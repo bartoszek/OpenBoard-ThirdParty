@@ -1,0 +1,78 @@
+version: 1.0.{build}
+
+branches:
+  only:
+    - appveyor
+
+shallow_clone: true
+clone_depth: 1
+
+image:
+  - Visual Studio 2013
+  - Visual Studio 2015
+  
+environment:
+  matrix:
+    - QTDIR: C:\Qt\5.5\msvc2013
+      cname: Win32-VS2013
+      VSVER: 12.0
+    - QTDIR: C:\Qt\5.5\msvc2013_64
+      cname: Win64-VS2013
+      VSVER: 12.0
+    - QTDIR: C:\Qt\5.6\msvc2013
+      cname: Win32-VS2013
+      VSVER: 12.0
+    - QTDIR: C:\Qt\5.6\msvc2013_64
+      cname: Win64-VS2013
+      VSVER: 12.0
+    - QTDIR: C:\Qt\5.6.3\msvc2015
+      cname: Win32-VS2015
+      VSVER: 14.0
+    - QTDIR: C:\Qt\5.6.3\msvc2015_64
+      cname: Win64-VS2015
+      VSVER: 14.0
+  matrix:
+    - lib: quazip
+    - lib: freetype
+    - lib: xpdf
+
+matrix:
+  exclude:
+    - image: Visual Studio 2013
+      QTDIR: C:\Qt\5.6.3\msvc2015
+    - image: Visual Studio 2013
+      QTDIR: C:\Qt\5.6.3\msvc2015_64
+    - image: Visual Studio 2015
+      QTDIR: C:\Qt\5.5\msvc2013
+    - image: Visual Studio 2015
+      QTDIR: C:\Qt\5.5\msvc2013_64
+    - image: Visual Studio 2015
+      QTDIR: C:\Qt\5.6\msvc2013
+    - image: Visual Studio 2015
+      QTDIR: C:\Qt\5.6\msvc2013_64
+  fast_finish: true
+
+install:
+  - '%QTDIR%\bin\qtenv2.bat'
+  - if %QTDIR:_64=%==%QTDIR% ( set ARCH=x86 ) else set ARCH=x64
+  - if %cname%==mingw set make=mingw32-make.exe
+  - if %cname%==mingw g++ --version
+  - if %cname%==mingw %make% --version
+  - if not %cname%==mingw call "%ProgramFiles(x86)%\Microsoft Visual Studio %VSVER%\VC\vcvarsall.bat" %ARCH%
+  - if not %cname%==mingw set make=nmake.exe
+  - if not %cname%==mingw %make% /? > nul
+  - if %cname%==mingw set PATH=%PATH%;%QTDIR%\bin;C:\MinGW\bin
+#  - '"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" /x64'
+
+before_build:
+  - cd %APPVEYOR_BUILD_FOLDER%/%lib%
+  - qmake %lib%.pro
+
+build_script:
+  - cd %APPVEYOR_BUILD_FOLDER%/%lib%
+  - '%make%'
+
+artifacts:
+  - path: %APPVEYOR_BUILD_FOLDER%/%libs%
+  - name: %lib% build
+  - type: zip
