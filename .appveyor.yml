@@ -134,11 +134,11 @@ install:
 
 before_build:
   - cd %APPVEYOR_BUILD_FOLDER%/quazip
-  - qmake quazip.pro
+  - qmake CONFIG+=release CONFIG+=force_debug_info quazip.pro
   - cd %APPVEYOR_BUILD_FOLDER%/freetype
-  - qmake freetype.pro
+  - qmake CONFIG+=release CONFIG+=force_debug_info freetype.pro
   - cd %APPVEYOR_BUILD_FOLDER%/xpdf
-  - qmake xpdf.pro
+  - qmake CONFIG+=release CONFIG+=force_debug_info xpdf.pro
 
 build_script:
   - cd %APPVEYOR_BUILD_FOLDER%/quazip
