@@ -1,5 +1,7 @@
 version: 1.0.{build}
 
+#msys provides `pacman` packge manager and uses mingw-w64-toolchain https://github.com/frankmorgner/openpace/blob/master/appveyor.yml
+
 branches:
   only:
     - appveyor
@@ -8,9 +10,13 @@ shallow_clone: true
 clone_depth: 1
 
 image:
-  - Visual Studio 2013
-  - Visual Studio 2015
-  - Visual Studio 2017
+  - Visual Studio 2013 #VSVER {9,10,11,12}.0
+  - Visual Studio 2015 #VSVER {9,10,11,12,14}.0
+  - Visual Studio 2017 #VSVER ^^^^^^^^^^^^^^^^^ (msvc_2017 > program_files/msvs/2017)
+
+#platform:
+#  - x64
+#  - x86
   
 environment:
   matrix:
@@ -19,85 +25,85 @@ environment:
     # qt 5.5
     - QTDIR: C:\Qt\5.5\msvc2013
       cname: Win32-VS2013
-      VSVER: 12.0
+      VSVER: 12
     - QTDIR: C:\Qt\5.5\msvc2013_64
       cname: Win64-VS2013
-      VSVER: 12.0
+      VSVER: 12
     # qt 5.6
     - QTDIR: C:\Qt\5.6\msvc2013
       cname: Win32-VS2013
-      VSVER: 12.0
+      VSVER: 12
     - QTDIR: C:\Qt\5.6\msvc2013_64
       cname: Win64-VS2013
-      VSVER: 12.0
+      VSVER: 12
     # qt 5.7
     - QTDIR: C:\Qt\5.7\msvc2013
       cname: Win32-VS2013
-      VSVER: 12.0
+      VSVER: 12
     - QTDIR: C:\Qt\5.7\msvc2013_64
       cname: Win64-VS2013
-      VSVER: 12.0
+      VSVER: 12
     # qt 5.8
     - QTDIR: C:\Qt\5.8\msvc2013
       cname: Win32-VS2013
-      VSVER: 12.0
+      VSVER: 12
     - QTDIR: C:\Qt\5.8\msvc2013_64
       cname: Win64-VS2013
-      VSVER: 12.0
+      VSVER: 12
     # visual studio 2015
     # qt 5.6
     - QTDIR: C:\Qt\5.6\msvc2015
       cname: Win32-VS2015
-      VSVER: 14.0
+      VSVER: 14
     - QTDIR: C:\Qt\5.6\msvc2015_64
       cname: Win64-VS2015
-      VSVER: 14.0
+      VSVER: 14
     # qt 5.7 only 32 bit
     # qt 5.9
     - QTDIR: C:\Qt\5.9\msvc2015
       cname: Win32-VS2015
-      VSVER: 14.0
+      VSVER: 14
     - QTDIR: C:\Qt\5.9\msvc2015_64
       cname: Win64-VS2015
-      VSVER: 14.0
+      VSVER: 14
     # qt 5.10
     - QTDIR: C:\Qt\5.10\msvc2015
       cname: Win32-VS2015
-      VSVER: 14.0
+      VSVER: 14
     - QTDIR: C:\Qt\5.10\msvc2015_64
       cname: Win64-VS2015
-      VSVER: 14.0
+      VSVER: 14
     # qt 5.11
     - QTDIR: C:\Qt\5.11\msvc2015
       cname: Win32-VS2015
-      VSVER: 14.0
+      VSVER: 14
     - QTDIR: C:\Qt\5.11\msvc2015_64
       cname: Win64-VS2015
-      VSVER: 14.0
+      VSVER: 14
     # visual studio 2017
     # %QTDIR%\bin\qtenv2.bat not found
     # qt 5.12
     - QTDIR: C:\Qt\5.12\msvc2017
       cname: Win32-VS2017
-      VSVER: 15.0
+      VSVER: 15
     - QTDIR: C:\Qt\5.12\msvc2017_64
       cname: Win64-VS2017
-      VSVER: 15.0
+      VSVER: 15
 
 matrix:
   exclude:
     - image: Visual Studio 2013
-      VSVER: 14.0
+      VSVER: 14
     - image: Visual Studio 2013
-      VSVER: 15.0
+      VSVER: 15
     - image: Visual Studio 2015
-      VSVER: 12.0
+      VSVER: 12
     - image: Visual Studio 2015
-      VSVER: 15.0
+      VSVER: 15
     - image: Visual Studio 2017
-      VSVER: 12.0
+      VSVER: 12
     - image: Visual Studio 2017
-      VSVER: 14.0
+      VSVER: 14
 #  fast_finish: true
   allow_failures:
     - cname: Win64-VS2015
@@ -105,13 +111,22 @@ matrix:
     - cname: Win32-VS2017
 
 install:
-  - ls "%ProgramFiles(x86)%"
   - '%QTDIR%\bin\qtenv2.bat'
   - if %QTDIR:_64=%==%QTDIR% ( set ARCH=x86 ) else set ARCH=x64
+# SDKs\2013:{Azure,Windows\{6.0a,7.0,7.1}},2015:{Azura,Service Fabric,Windows},2017:{Azure,Service Fabric}
+  - if %ARCH%==x64 if not %VSVER%==15 call "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" /x64
+  - ps: >-
+        If ($env:VSVER -Match "15") {
+            $env:VSINIT="C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat"
+        } Else {
+            $env:VSCOMNTOOLS=(Get-Content ("env:VS" + "$env:VSVER" + "0COMNTOOLS"))
+            $env:VSINIT="%VSCOMNTOOLS%\..\..\VC\vcvarsall.bat"
+        }
+  - echo "Using Visual Studio %VSVER% at %VSCOMNTOOLS%"
+  - call "%VSINIT%" %ARCH%
   - if %cname%==mingw set make=mingw32-make.exe
   - if %cname%==mingw g++ --version
   - if %cname%==mingw %make% --version
-  - if not %cname%==mingw call "%ProgramFiles(x86)%\Microsoft Visual Studio %VSVER%\VC\vcvarsall.bat" %ARCH%
   - if not %cname%==mingw set make=nmake.exe
   - if not %cname%==mingw %make% /? > nul
   - if %cname%==mingw set PATH=%PATH%;%QTDIR%\bin;C:\MinGW\bin
